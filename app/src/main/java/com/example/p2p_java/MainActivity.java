@@ -17,12 +17,14 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -73,7 +75,32 @@ public class MainActivity extends AppCompatActivity {
         exqListener();// ici ca serait le on start
 
     }
+    
+    public void disconnect(){
+        if (mManager != null && mChannel !=null){
+            mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
+                @Override
+                public void onGroupInfoAvailable(WifiP2pGroup group) {
+                    if (group != null && mManager != null && mChannel != null){
+                        mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
+                            @Override
+                            public void onSuccess() {
+                                Toast.makeText(getApplicationContext(),"removeGroup onSuccess - ",Toast.LENGTH_SHORT).show();
 
+                            }
+
+                            @Override
+                            public void onFailure(int reason) {
+                                Toast.makeText(getApplicationContext(),"removeGroup onFailure -",Toast.LENGTH_SHORT).show();
+
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+    }
 
     Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -264,6 +291,13 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
         }
 
 
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        disconnect();
     }
 
     @Override
