@@ -19,6 +19,7 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -68,8 +69,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {  //premiere methode par ou ca passe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initialWork();                                    // ici ca serait le on start
-        exqListener();
+        initialWork();
+        exqListener();// ici ca serait le on start
+
     }
 
 
@@ -89,8 +91,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
     });
-
+// here is where we can see the action when the bouttons are pressed
     private void exqListener() {
+        //here for the  on off wifi boutton
 btnOnOff.setOnClickListener(new View.OnClickListener() {
     @Override
     public void onClick(View view) {
@@ -108,6 +111,8 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
         }
     }
 });
+
+// here is the action  discover peers boutton
             btnDiscover.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -125,7 +130,7 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
                 }
             });
 
-////////////////////////////
+// here is the option for the listview where the devices appears.
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
@@ -147,7 +152,8 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
                     });
                 }
             });
-            ////////////////////////////////////////////////
+
+// here is where the action for the send boutton is set
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -157,6 +163,7 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
         });
     }
 
+    //here we set all the  bouttons andvariables that we'll need
     private void initialWork() {
         btnOnOff = (Button) findViewById(R.id.onOff);
         btnDiscover= (Button) findViewById(R.id.discover);
@@ -175,14 +182,11 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
         mIntentFilter = new IntentFilter();                                            // it tells the os how to communicate with the different components (activities,services,broadcaste receives)
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);          //********* HERE WE ADD INTENT ACTION TO MATCH ON THE FUTURE*************
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);          //An intent filter is an expression in an app's manifest file that
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);    //specifies the type of intents that the component would like to receive.
-                                                                                        // For instance, by declaring an intent filter for an activity,
-                                                                                        //you make it possible for other apps to directly start your activity with a certain kind of intent
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);    ////////////////////////
-
-
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);    //specifies the type of intents that the component would like to receive. // For instance, by declaring an intent filter for an activity,you make it possible for other apps to directly start your activity with a certain kind of intent
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
     }
+    // we create the peerlistener. This variable will be useded to capture the names  of the devices
     WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
         @Override
         public void onPeersAvailable(WifiP2pDeviceList peerList) {
@@ -214,6 +218,8 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
 
 
     };
+    // this fonction  will determine if the device is a host or a client and will do the procedures for communication and send message
+    // the fonction start fo each class is overwrite
     WifiP2pManager.ConnectionInfoListener connectionInfoListener = new WifiP2pManager.ConnectionInfoListener() {
         @Override
         public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
@@ -238,11 +244,16 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
 
 
     @Override
-    protected void onResume() {  // ici toutes les variables sont crées et on commence à faire les calculs
+    protected void onResume() {  // here all the variables are created and we start making the process
         super.onResume();
-        // Permission has already been granted
         registerReceiver(mReceiver,mIntentFilter);// if the action match with the filter, we will recive broadcasts until the app close
-///////////////// permission position///////////////////////////
+
+
+
+
+
+
+//ask permission for the possition and keep it asking until it as allowed
        if(ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -251,10 +262,8 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
 
 
         }
-////////////////permision position///////////////////////////////
-        super.onResume();
-        // Permission has already been granted
-        registerReceiver(mReceiver,mIntentFilter);// if the action match with the filter, we will recive broadcasts until the app close
+
+
     }
 
     @Override
@@ -265,7 +274,7 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
         unregisterReceiver(mReceiver); //Be sure to unregister the receiver when you no longer need it or the context is no longer valid.
 
     }
-// function to be sure what to do if te permision es
+// function to be sure what to do if the permissions are denied
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
@@ -284,12 +293,14 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
+// this is the serverclass where the server will be connected as a server and make the process
+
 
 public class ServerClass extends Thread {
 
         Socket socket;
         ServerSocket serverSocket;
-// Here we create a server class
+
     @Override
     public void run() {
         super.run();
@@ -304,32 +315,33 @@ public class ServerClass extends Thread {
 
     }
 }
-private class SendReceive extends Thread{
-        private Socket socket;
-        private InputStream inputStream;
-        private OutputStream outputStream;
-        public SendReceive(Socket skt){
-            socket=skt;
-            try {
-                inputStream=socket.getInputStream();
-                outputStream=socket.getOutputStream();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
 
+private class SendReceive extends Thread {
+    private Socket socket;
+    private InputStream inputStream;
+    private OutputStream outputStream;
+
+    public SendReceive(Socket skt) {
+        socket = skt;
+        try {
+            inputStream = socket.getInputStream();
+            outputStream = socket.getOutputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+    }
 
     @Override
     public void run() {
         byte[] buffer = new byte[1024];
         int bytes;
 
-        while(socket!=null)
-        {
+        while (socket != null) {
             try {
-                bytes=inputStream.read(buffer);
-                if(bytes>0){
-                    handler.obtainMessage(MESSAGE_READ,bytes,-1,buffer).sendToTarget();
+                bytes = inputStream.read(buffer);
+                if (bytes > 0) {
+                    handler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -337,6 +349,23 @@ private class SendReceive extends Thread{
 
         }
     }
+
+    public void write(final byte[] bytes) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    outputStream.write(bytes);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+
+    }
+}
+    /*
     public void write(byte[] bytes){
         try {
             outputStream.write(bytes);
@@ -345,33 +374,29 @@ private class SendReceive extends Thread{
         }
     }
 }
+*/
 
+// this class is  use to
     public class ClientClass extends Thread{
-
         Socket socket;
         String  hostAdd;
-
         public ClientClass(InetAddress hostAddress)
         {
             hostAdd=hostAddress.getHostAddress();
             socket=new Socket();
-
-
         }
-
         @Override
         public void run() {
             try {
                 socket.connect(new InetSocketAddress(hostAdd,8888),500);
                 sendReceive= new SendReceive(socket);
                 sendReceive.start();
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
-
     }
+
+
 
 }
