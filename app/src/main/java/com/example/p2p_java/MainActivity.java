@@ -44,7 +44,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
 
     Button btnOnOff , btnDiscover, btnSend;
@@ -100,6 +100,30 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+    }
+
+    public void reconnect(){
+        if (mManager != null && mChannel !=null){
+            mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
+                @Override
+                public void onGroupInfoAvailable(WifiP2pGroup group) {
+                    if (group != null && mManager != null && mChannel != null){
+                        Toast.makeText(getApplicationContext(),"CONNECTED TO A DEVICE!!!",Toast.LENGTH_SHORT).show();
+                        mManager.requestConnectionInfo(mChannel,connectionInfoListener);
+
+
+                    }
+                }
+            });
+        }
+    }
+
+
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        reconnect();
     }
 
     Handler handler = new Handler(new Handler.Callback() {
@@ -399,18 +423,7 @@ private class SendReceive extends Thread {
 
     }
 }
-    /*
-    public void write(byte[] bytes){
-        try {
-            outputStream.write(bytes);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
-*/
 
-// this class is  use to
     public class ClientClass extends Thread{
         Socket socket;
         String  hostAdd;
