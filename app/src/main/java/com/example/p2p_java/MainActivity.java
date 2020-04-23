@@ -82,6 +82,7 @@ public class MainActivity extends Activity {
                 @Override
                 public void onGroupInfoAvailable(WifiP2pGroup group) {
                     if (group != null && mManager != null && mChannel != null){
+                        unregisterReceiver(mReceiver); //Be sure to unregister the receiver when you no longer need it or the context is no longer valid.
                         mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
                             @Override
                             public void onSuccess() {
@@ -209,7 +210,11 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String msg = writeMsg.getText().toString();
+                if(sendReceive!=null)
                 sendReceive.write(msg.getBytes());
+                else{
+                    Toast.makeText(getApplicationContext(),"you are not connected to a device yet", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -329,7 +334,7 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
 
         super.onPause();
 
-        unregisterReceiver(mReceiver); //Be sure to unregister the receiver when you no longer need it or the context is no longer valid.
+
 
     }
 // function to be sure what to do if the permissions are denied
@@ -373,6 +378,25 @@ public class ServerClass extends Thread {
 
     }
 }
+    public class ClientClass extends Thread{
+        Socket socket;
+        String  hostAdd;
+        public ClientClass(InetAddress hostAddress)
+        {
+            hostAdd=hostAddress.getHostAddress();
+            socket=new Socket();
+        }
+        @Override
+        public void run() {
+            try {
+                socket.connect(new InetSocketAddress(hostAdd,8888));
+                sendReceive= new SendReceive(socket);
+                sendReceive.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 private class SendReceive extends Thread {
     private Socket socket;
@@ -424,25 +448,7 @@ private class SendReceive extends Thread {
     }
 }
 
-    public class ClientClass extends Thread{
-        Socket socket;
-        String  hostAdd;
-        public ClientClass(InetAddress hostAddress)
-        {
-            hostAdd=hostAddress.getHostAddress();
-            socket=new Socket();
-        }
-        @Override
-        public void run() {
-            try {
-                socket.connect(new InetSocketAddress(hostAdd,8888),500);
-                sendReceive= new SendReceive(socket);
-                sendReceive.start();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+
 
 
 
