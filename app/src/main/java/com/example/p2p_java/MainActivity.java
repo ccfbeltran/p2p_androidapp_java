@@ -51,6 +51,9 @@ public class MainActivity extends Activity {
     ListView listView;
     TextView read_msg_box, connectionStatus;
     EditText writeMsg;
+    boolean is_owner=false;
+    boolean is_client=false;
+    boolean client_socket_activate=false;
 
     WifiManager wifiManager;
     WifiP2pManager mManager;
@@ -81,21 +84,55 @@ public class MainActivity extends Activity {
             mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
                 @Override
                 public void onGroupInfoAvailable(WifiP2pGroup group) {
-                    if (group != null && mManager != null && mChannel != null){
+                    if (group != null || (mManager != null && mChannel != null)){
                         unregisterReceiver(mReceiver); //Be sure to unregister the receiver when you no longer need it or the context is no longer valid.
+                        client_socket_activate=false;
+
                         mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener() {
                             @Override
                             public void onSuccess() {
-                                Toast.makeText(getApplicationContext(),"removeGroup onSuccess - ",Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "removeGroup onSuccess - ", Toast.LENGTH_SHORT).show();
 
                             }
 
                             @Override
                             public void onFailure(int reason) {
-                                Toast.makeText(getApplicationContext(),"removeGroup onFailure -",Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "removeGroup onFailure -", Toast.LENGTH_SHORT).show();
+                                mManager=null;
+                                mChannel= null;
 
                             }
                         });
+                        if(is_owner==false && is_client==true) {
+                            is_owner = false;
+                            is_owner = false;
+                            if (clientClass.socket != null) {
+                                try {
+                                    clientClass.socket.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+
+
+                        }
+                        // close for the owner
+                        if(is_owner==true && is_client==false) {
+                            if (serverClass.serverSocket != null) {
+                                try {
+                                    serverClass.serverSocket.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            is_owner = false;
+                            is_owner = false;
+
+
+
+                        }
+
                     }
                 }
             });
@@ -109,15 +146,25 @@ public class MainActivity extends Activity {
                 @Override
                 public void onGroupInfoAvailable(WifiP2pGroup group) {
                     if (group != null && mManager != null && mChannel != null){
-                        Toast.makeText(getApplicationContext(),"CONNECTED TO A DEVICE!!!",Toast.LENGTH_SHORT).show();
-                        mManager.requestConnectionInfo(mChannel,connectionInfoListener);
 
+                      //  mManager.requestConnectionInfo(mChannel,connectionInfoListener);
+                        if(is_owner==false && is_client==true){
+                            Toast.makeText(getApplicationContext(),"CONNECTED TO A DEVICE and you ar the client",Toast.LENGTH_SHORT).show();
+                            clientClass.reconnect_client();
+
+
+                        }
+                        if(is_owner==true && is_client==false){
+                            Toast.makeText(getApplicationContext(),"CONNECTED TO A DEVICE and you ar the owner",Toast.LENGTH_SHORT).show();
+
+                        }
 
                     }
                 }
             });
         }
     }
+
 
 
 
@@ -214,11 +261,18 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
                 sendReceive.write(msg.getBytes());
                 else{
                     Toast.makeText(getApplicationContext(),"you are not connected to a device yet", Toast.LENGTH_SHORT).show();
+                    if(is_owner || is_client )
+
+                    mManager.requestConnectionInfo(mChannel,connectionInfoListener);
                 }
             }
         });
     }
+public void make_names(){
 
+
+
+}
     //here we set all the  bouttons andvariables that we'll need
     private void initialWork() {
         btnOnOff = (Button) findViewById(R.id.onOff);
@@ -287,15 +341,22 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
                 connectionStatus.setText("Host");
                 serverClass = new ServerClass();
                 serverClass.start();
+                is_owner=true;
+                is_client= false;
+
             }else if (wifiP2pInfo.groupFormed)
             {
                  connectionStatus.setText("Client");
                  clientClass = new ClientClass(groupOwnerAddress);
                  clientClass.start();
+                is_owner=false;
+                is_client= true;
+
             }
 
 
         }
+
     };
 
 
@@ -334,6 +395,9 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
 
         super.onPause();
 
+    // unregisterReceiver(mReceiver); //Be sure to unregister the receiver when you no longer need it or the context is no longer valid.
+
+
 
 
     }
@@ -368,13 +432,18 @@ public class ServerClass extends Thread {
     public void run() {
         super.run();
         try {
+
             serverSocket=new ServerSocket(8888);
+
             socket= serverSocket.accept();
             sendReceive= new SendReceive(socket);
             sendReceive.start();
         } catch (IOException e) {
             e.printStackTrace();
+
         }
+
+
 
     }
 }
@@ -389,12 +458,26 @@ public class ServerClass extends Thread {
         @Override
         public void run() {
             try {
-                socket.connect(new InetSocketAddress(hostAdd,8888));
-                sendReceive= new SendReceive(socket);
-                sendReceive.start();
+                if(!client_socket_activate) {
+                    socket.connect(new InetSocketAddress(hostAdd, 8888));
+                    sendReceive = new SendReceive(socket);
+                    sendReceive.start();
+                    client_socket_activate= true;
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
+                throw new Error("Copying Failed");
             }
+
+        }
+
+        public void reconnect_client(){
+
+
+
+
+
         }
     }
 

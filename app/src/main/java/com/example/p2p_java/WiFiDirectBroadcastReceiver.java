@@ -58,7 +58,8 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
            //     Toast.makeText(context,"l'appereil s'es deconnecté", Toast.LENGTH_SHORT).show();
             }
         }else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
-            //do something
+            Toast.makeText(context,"WIFI_P2P_THIS_DEVICE_CHANGED_ACTION ",Toast.LENGTH_SHORT).show();
+
         }
 
 
