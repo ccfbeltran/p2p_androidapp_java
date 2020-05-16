@@ -213,15 +213,20 @@ btnOnOff.setOnClickListener(new View.OnClickListener() {
             btnDiscover.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+                    WifiP2pConfig config = new WifiP2pConfig();
+
+                    mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
                         @Override
                         public void onSuccess() {
-                            connectionStatus.setText("Discovery Started");
+                            Toast.makeText(getApplicationContext(),"a server is made ",Toast.LENGTH_LONG).show();
+
                         }
 
                         @Override
                         public void onFailure(int reason) {
-                            connectionStatus.setText("Discovery Started Failed");
+                            Toast.makeText(getApplicationContext(),"a server is made ",Toast.LENGTH_LONG).show();
+                            return;
+
                         }
                     });
                 }
@@ -335,6 +340,7 @@ public void make_names(){
 
             if(wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner)
             {
+
 
                 connectionStatus.setText("Host");
                 serverClass = new ServerClass();
